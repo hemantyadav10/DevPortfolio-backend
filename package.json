@@ -1,0 +1,24 @@
+{
+  "name": "devportfolio-backend",
+  "version": "1.0.0",
+  "description": "DevPortfolio: a skill showcase and endorsement platform for developers.",
+  "license": "ISC",
+  "author": "Hemant",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --env-file=.env src/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.2",
+    "mongoose-aggregate-paginate-v2": "^1.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
