@@ -21,3 +21,5 @@ function errorHandler(err, _req, res, _next) {
     .status(statusCode)
     .json(response);
 }
+
+export default errorHandler;
