@@ -1,4 +1,4 @@
-function asynHandler(fn) {
+function asyncHandler(fn) {
   return async (req, res, next) => {
     try {
       await fn(req, res, next);
@@ -8,4 +8,4 @@ function asynHandler(fn) {
   }
 }
 
-export { asynHandler }
+export { asyncHandler }
