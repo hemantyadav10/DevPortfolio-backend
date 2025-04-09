@@ -73,7 +73,7 @@ const updateSkill = asyncHandler(async (req, res) => {
   const updates = {};
   for (const field of allowedFields) {
     if (field in req.body) {
-      if ((field === "category" || field === 'name') && typeof req.body[field] === "string") {
+      if ((field === "category") && typeof req.body[field] === "string") {
         updates[field] = req.body[field].toLowerCase();
       } else {
         updates[field] = req.body[field];
