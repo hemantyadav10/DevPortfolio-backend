@@ -166,7 +166,7 @@ const getUserSkillsByCategory = asyncHandler(async (req, res) => {
 
 const getAllUserSkills = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const { limit = 2, page = 1 } = req.query;
+  const { limit = 10, page = 1 } = req.query;
 
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid user ID");

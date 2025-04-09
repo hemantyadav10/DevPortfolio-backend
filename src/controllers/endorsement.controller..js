@@ -34,7 +34,16 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
 
   if (existing) {
     // Remove endorsement
-    await existing.deleteOne();
+    await Endorsement.findByIdAndDelete(existing._id);
+
+    // Check if the skill should be marked as verified
+    const count = await Endorsement.countDocuments({ skillId });
+    const verified = count >= 3;
+    
+    if (skill.verified !== verified) {
+      await Skill.updateOne({ _id: skillId }, { $set: { verified } });
+    }
+
     return res
       .status(200)
       .json(new ApiResponse(200, { removed: true, id: existing._id }, "Endorsement removed."));
@@ -45,6 +54,13 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
       endorsedBy,
       endorsedTo,
     });
+
+    // Check if the skill should be marked as verified
+    const count = await Endorsement.countDocuments({ skillId });
+    const verified = count >= 3;
+    if (skill.verified !== verified) {
+      await Skill.updateOne({ _id: skillId }, { $set: { verified } });
+    }
 
     return res
       .status(201)
