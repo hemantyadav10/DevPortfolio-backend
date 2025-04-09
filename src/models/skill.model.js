@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+import { validCategories } from '../constants.js';
 
 const skillSchema = new mongoose.Schema({
   userId: {
@@ -11,6 +12,7 @@ const skillSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    lowercase: true,
   },
   category: {
     type: String,
