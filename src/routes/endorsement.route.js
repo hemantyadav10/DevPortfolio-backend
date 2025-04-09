@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js"
 import {
   getRecentEndoresements,
+  getSkillEndorsements,
   toggleEndorsement
 } from "../controllers/endorsement.controller..js";
 
@@ -11,7 +12,10 @@ router.route('/')
   .post(verifyJwt, toggleEndorsement)
 
 router
-  .route('/:userId')
+  .route('/recent/:userId')
   .get(getRecentEndoresements)
+
+router.route('/:skillId')
+  .get(getSkillEndorsements)
 
 export default router;
