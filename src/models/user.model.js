@@ -34,35 +34,43 @@ const userSchema = new mongoose.Schema({
   title: {
     type: String,
     trim: true,
+    default: "",
   },
   yearsOfExperience: {
     type: Number,
     min: 0,
+    default: null,
   },
   bio: {
     type: String,
     trim: true,
+    default: "",
   },
   profilePictureUrl: {
     type: String,
     trim: true,
+    default: "",
   },
   socialLinks: {
     github: {
       type: String,
       trim: true,
+      default: "",
     },
     linkedin: {
       type: String,
       trim: true,
+      default: "",
     },
     twitter: {
       type: String,
       trim: true,
+      default: "",
     },
     website: {
       type: String,
       trim: true,
+      default: "",
     },
   },
   refreshToken: String,
@@ -88,10 +96,11 @@ userSchema.methods.generateAccessToken = function () {
       _id: this._id,
       email: this.email,
       username: this.username,
-      name: this.name
+      name: this.name,
+      profilePictureUrl: this.profilePictureUrl,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+    { expiresIn: "1d" }
   );
 }
 
@@ -100,7 +109,7 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     { _id: this._id },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+    { expiresIn: "10d" }
   );
 }
 
