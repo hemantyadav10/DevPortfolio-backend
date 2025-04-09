@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import userRouter from './routes/user.routes.js';
 import skillRouter from './routes/skill.routes.js';
 import endorsementRouter from './routes/endorsement.route.js';
+import statsRouter from './routes/stats.routes.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/skills", skillRouter);
 app.use("/api/v1/endorsements", endorsementRouter);
+app.use("/api/v1/stats", statsRouter);
 
 // Global error handling middleware
 app.use(errorHandler);

@@ -67,7 +67,6 @@ const getRecentEndoresements = asyncHandler(async (req, res) => {
   const endorsements = await Endorsement.find({ endorsedTo: userId })
     .populate("skillId", "name category")
     .populate("endorsedBy", "name username profilePictureUrl")
-    .populate("endorsedTo", "name username profilePictureUrl")
     .sort({ createdAt: -1 })
     .limit(Number(limit));
 
