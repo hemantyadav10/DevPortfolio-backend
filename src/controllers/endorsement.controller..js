@@ -52,6 +52,31 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
   }
 });
 
+const getRecentEndoresements = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { limit = 3 } = req.query;
+
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
+  if (limit <= 0) {
+    throw new ApiError(400, "Limit must be a positive number.");
+  }
+
+  const endorsements = await Endorsement.find({ endorsedTo: userId })
+    .populate("skillId", "name category")
+    .populate("endorsedBy", "name username profilePictureUrl")
+    .populate("endorsedTo", "name username profilePictureUrl")
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, endorsements, "Recent endorsements fetched."));
+})
+
 export {
   toggleEndorsement,
+  getRecentEndoresements
 }

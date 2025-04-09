@@ -1,12 +1,17 @@
 import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js"
-import { toggleEndorsement } from "../controllers/endorsement.controller..js";
+import {
+  getRecentEndoresements,
+  toggleEndorsement
+} from "../controllers/endorsement.controller..js";
 
 const router = Router();
 
-router.use(verifyJwt)
-
 router.route('/')
-  .post(toggleEndorsement)
+  .post(verifyJwt, toggleEndorsement)
+
+router
+  .route('/:userId')
+  .get(getRecentEndoresements)
 
 export default router;
