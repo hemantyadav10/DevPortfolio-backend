@@ -161,7 +161,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const currentUser = asyncHandler(async (req, res) => {
   return res
     .status(200).json(new ApiResponse(200, req.user, "User fetched successfully"))
-})
+});
 
 // Update user profile
 const updateUserProfile = asyncHandler(async (req, res) => {
@@ -212,13 +212,157 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedUser, "User profile updated successfully."))
 
-})
+});
+
+// Get developer profile info
+const getDeveloperProfileInfo = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId).select("-password -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res.status(200).json(new ApiResponse(200, user, "User profile fetched successfully."))
+});
+
+// Fetch all developers
+const fetchAllDevelopers = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 3, query, category } = req.query;
+
+  const pipeline = []
+
+  // full text search for name, title or username
+  if (query) {
+    pipeline.unshift({
+      $search: {
+        index: "name",
+        compound: {
+          should: [
+            {
+              autocomplete: {
+                path: "name",
+                query: query,
+                fuzzy: { maxEdits: 1 }
+              }
+            },
+            {
+              autocomplete: {
+                path: "title",
+                query: query,
+                fuzzy: { maxEdits: 1 }
+              }
+            },
+            {
+              text: {
+                path: "username",
+                query: query
+              }
+            }
+          ],
+          minimumShouldMatch: 1
+        }
+      }
+    })
+  }
+
+  // lookup skills and endorsements, and sort by total endorsements
+  pipeline.push({
+    $lookup: {
+      from: "skills",
+      localField: "_id",
+      foreignField: "userId",
+      as: "skills",
+      pipeline: [
+        {
+          $lookup: {
+            from: "endorsements",
+            localField: "_id",
+            foreignField: "skillId",
+            as: "endorsements",
+            pipeline: [
+              { $project: { _id: 1 } },
+            ]
+          }
+        },
+        {
+          $addFields: {
+            totalEndorsements: { $size: "$endorsements" }
+          }
+        },
+        { $sort: { totalEndorsements: -1 } },
+        { $limit: 3 },
+        {
+          $project: {
+            name: 1,
+            proficiencyLevel: 1,
+            totalEndorsements: 1,
+            category: 1
+          }
+        }
+      ]
+    }
+  },
+  );
+
+  // filter by category if provided
+  if (category) {
+    pipeline.push({
+      $match: {
+        "skills.category": category
+      }
+    });
+  }
+
+  pipeline.push({
+    $lookup: {
+      from: "endorsements",
+      localField: "_id",
+      foreignField: "endorsedTo",
+      as: "endorsements",
+      pipeline: [{ $project: { _id: 1 } }]
+    }
+  },
+  );
+
+  pipeline.push({
+    $addFields: {
+      endorsementCount: { $size: "$endorsements" }
+    }
+  });
+
+  pipeline.push({
+    $project: {
+      name: 1,
+      username: 1,
+      title: 1,
+      yearsOfExperience: 1,
+      profilePictureUrl: 1,
+      skills: 1,
+      endorsementCount: 1
+    }
+  });
+
+  const aggregation = User.aggregate(pipeline);
+
+  const users = await User.aggregatePaginate(aggregation, {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    sort: { endorsementCount: -1 },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, "All developers fetched successfully."))
+});
 
 export {
   registerUser,
   login,
   logout,
   refreshAccessToken,
-  currentUser, 
-  updateUserProfile
+  currentUser,
+  updateUserProfile,
+  getDeveloperProfileInfo,
+  fetchAllDevelopers
 }

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   currentUser,
+  fetchAllDevelopers,
+  getDeveloperProfileInfo,
   login,
   logout,
   refreshAccessToken,
@@ -17,5 +19,7 @@ router.route('/logout').post(verifyJwt, logout)
 router.route('/refresh-token').post(refreshAccessToken)
 router.route('/current-user').get(verifyJwt, currentUser)
 router.route('/update-profile').patch(verifyJwt, updateUserProfile)
+router.route('/profile/:userId').get(getDeveloperProfileInfo)
+router.route('/').get(fetchAllDevelopers)
 
 export default router;

@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: "",
+    index: true
   },
   yearsOfExperience: {
     type: Number,
