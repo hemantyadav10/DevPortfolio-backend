@@ -1,4 +1,4 @@
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Skill } from "../models/skill.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
@@ -100,8 +100,101 @@ const updateSkill = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedSkill, "Skill updated successfully."));
 })
 
+const getUserSkillsByCategory = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
+  // Aggregation pipeline
+  const skillsGrouped = await Skill.aggregate([
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId.createFromHexString(userId)
+      }
+    },
+    {
+      $lookup: {
+        from: "endorsements",
+        localField: "_id",
+        foreignField: "skillId",
+        as: "endorsements",
+        pipeline: [
+          {
+            $project: {
+              _id: 1
+            }
+          },
+        ]
+      }
+    },
+    {
+      $addFields: {
+        totalEndorsements: { $size: "$endorsements" }
+      }
+    },
+    {
+      $group: {
+        _id: "$category",
+        skills: {
+          $push: {
+            _id: "$_id",
+            name: "$name",
+            proficiencyLevel: "$proficiencyLevel",
+            yearsExperience: "$yearsExperience",
+            verified: "$verified",
+            totalEndorsements: "$totalEndorsements"
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        category: "$_id",
+        skills: 1
+      }
+    }
+  ])
+
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, skillsGrouped, "Skills grouped by category fetched successfully for the user."));
+});
+
+const getAllUserSkills = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { limit = 2, page = 1 } = req.query;
+
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
+  const aggregationPipeline = Skill.aggregate([
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId.createFromHexString(userId)
+      }
+    }
+  ]);
+
+  const skills = await Skill.aggregatePaginate(aggregationPipeline, {
+    limit: Number(limit) || 10,
+    page: Number(page) || 1,
+    sort: { createdAt: -1 },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, skills, "Skills fetched successfully."))
+})
+
 export {
   addNewSkill,
   deleteSkill,
-  updateSkill
+  updateSkill,
+  getUserSkillsByCategory,
+  getAllUserSkills
 }
