@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyJwt } from "../middlewares/auth.middleware.js"
+import { optionalAuth, verifyJwt } from "../middlewares/auth.middleware.js"
 import {
   addNewSkill,
   deleteSkill,
@@ -16,7 +16,7 @@ router
 
 router
   .route('/user/:userId')
-  .get(getAllUserSkills)
+  .get(optionalAuth, getAllUserSkills)
 
 router.use(verifyJwt);
 

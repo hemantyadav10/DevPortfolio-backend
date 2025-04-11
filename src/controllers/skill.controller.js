@@ -177,6 +177,44 @@ const getAllUserSkills = asyncHandler(async (req, res) => {
       $match: {
         userId: mongoose.Types.ObjectId.createFromHexString(userId)
       }
+    },
+    {
+      $lookup: {
+        from: "endorsements",
+        localField: "_id",
+        foreignField: "skillId",
+        as: "endorsedBy"
+      }
+    },
+    {
+      $addFields: {
+        endorsedBy: {
+          $cond: {
+            if: { $gt: [{ $size: "$endorsedBy" }, 0] },
+            then: {
+              $map: {
+                input: "$endorsedBy",
+                as: "e",
+                in: "$$e.endorsedBy"
+              }
+            },
+            else: []
+          }
+        }
+      }
+    },
+    {
+      $addFields: {
+        isEndorsedByMe: {
+          $in: [req.user?._id, "$endorsedBy"]
+        }
+      }
+    },
+    {
+      $project: {
+        endorsedBy: 0,
+        __v: 0
+      }
     }
   ]);
 

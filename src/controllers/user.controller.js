@@ -345,15 +345,18 @@ const fetchAllDevelopers = asyncHandler(async (req, res) => {
 
   const aggregation = User.aggregate(pipeline);
 
-  const users = await User.aggregatePaginate(aggregation, {
-    page: parseInt(page),
-    limit: parseInt(limit),
-    sort: { endorsementCount: -1 },
-  });
+  const [users, totalDevelopers] = await Promise.all([
+    User.aggregatePaginate(aggregation, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: { endorsementCount: -1 },
+    }),
+    User.countDocuments() // total developers without filters
+  ]);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, users, "All developers fetched successfully."))
+    .json(new ApiResponse(200, { ...users, totalDevelopers }, "All developers fetched successfully."))
 });
 
 export {
