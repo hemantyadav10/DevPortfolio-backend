@@ -9,6 +9,7 @@ import skillRouter from './routes/skill.routes.js';
 import endorsementRouter from './routes/endorsement.route.js';
 import statsRouter from './routes/stats.routes.js';
 import dashboardRouter from './routes/dashboard.routes.js';
+import healthRouter from './routes/healthcheck.routes.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/v1/skills", skillRouter);
 app.use("/api/v1/endorsements", endorsementRouter);
 app.use("/api/v1/stats", statsRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
+app.use("/api/v1/health", healthRouter);
 
 // Global error handling middleware
 app.use(errorHandler);
