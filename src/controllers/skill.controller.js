@@ -3,6 +3,7 @@ import { Skill } from "../models/skill.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { Endorsement } from "../models/endorsement.model.js";
 
 const addNewSkill = asyncHandler(async (req, res) => {
   const { name, category, proficiencyLevel, yearsExperience, description = '', projectUrl = '' } = req.body;
@@ -47,6 +48,8 @@ const deleteSkill = asyncHandler(async (req, res) => {
   if (!skill) {
     throw new ApiError(404, "Skill not found or unauthorized");
   }
+
+  await Endorsement.deleteMany({ skillId });
 
   return res
     .status(200)
@@ -144,9 +147,17 @@ const getUserSkillsByCategory = asyncHandler(async (req, res) => {
             proficiencyLevel: "$proficiencyLevel",
             yearsExperience: "$yearsExperience",
             verified: "$verified",
-            totalEndorsements: "$totalEndorsements"
+            totalEndorsements: "$totalEndorsements",
+            category: "$category",
+            description: "$description",
+            projectUrl: "$projectUrl"
           }
         }
+      }
+    },
+    {
+      $sort: {
+        _id: 1
       }
     },
     {

@@ -12,7 +12,6 @@ const skillSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    lowercase: true,
   },
   category: {
     type: String,

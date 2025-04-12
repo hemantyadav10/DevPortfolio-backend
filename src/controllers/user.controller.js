@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { ApiError } from '../utils/apiError.js';
 import jwt from 'jsonwebtoken';
+import { Endorsement } from '../models/endorsement.model.js';
 
 const refreshCookieOptions = {
   httpOnly: true,
@@ -359,6 +360,81 @@ const fetchAllDevelopers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { ...users, totalDevelopers }, "All developers fetched successfully."))
 });
 
+const getFeaturedDevelopers = asyncHandler(async (req, res) => {
+  const featuredDevs = await User.aggregate([
+    // Join skills
+    {
+      $lookup: {
+        from: "endorsements",
+        localField: "_id",
+        foreignField: "endorsedTo",
+        as: "endorsements",
+        pipeline: [
+          {
+            $project: { _id: 1 }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        totalEndorsementCount: { $size: "$endorsements" }
+      }
+    },
+    {
+      $lookup: {
+        from: "skills",
+        localField: "_id",
+        foreignField: "userId",
+        as: "skills",
+        pipeline: [
+          {
+            $lookup: {
+              from: "endorsements",
+              localField: "_id",
+              foreignField: "skillId",
+              as: "endorsements",
+              pipeline: [
+                { $project: { _id: 1 } },
+              ]
+            }
+          },
+          {
+            $addFields: {
+              totalEndorsements: { $size: "$endorsements" }
+            }
+          },
+          { $sort: { totalEndorsements: -1 } },
+          { $limit: 3 },
+          {
+            $project: {
+              name: 1,
+              category: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: {
+        name: 1,
+        username: 1,
+        title: 1,
+        yearsOfExperience: 1,
+        profilePictureUrl: 1,
+        totalEndorsementCount: 1,
+        skills: 1
+      }
+    },
+    { $sort: { totalEndorsementCount: -1 } },
+    { $limit: 3 }
+
+  ]);
+
+  res.status(200).json(new ApiResponse(200, featuredDevs, "Top featured developers."));
+});
+
+
 export {
   registerUser,
   login,
@@ -367,5 +443,6 @@ export {
   currentUser,
   updateUserProfile,
   getDeveloperProfileInfo,
-  fetchAllDevelopers
+  fetchAllDevelopers,
+  getFeaturedDevelopers
 }
