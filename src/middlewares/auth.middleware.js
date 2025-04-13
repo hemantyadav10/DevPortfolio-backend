@@ -26,7 +26,7 @@ const verifyJwt = asyncHandler(async (req, _res, next) => {
   next();
 });
 
-/// Middleware to optionally authenticate user via JWT; continues if invalid or missing.
+/// Middleware to optionally authenticate user via JWT; continues if missing.
 const optionalAuth = asyncHandler(async (req, res, next) => {
   const token = req.cookies?.accessToken || req.headers?.authorization?.split(" ")[1];
 
@@ -40,16 +40,14 @@ const optionalAuth = asyncHandler(async (req, res, next) => {
   try {
     decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
   } catch (error) {
-    console.log("Invalid token:", error.message);
-    return next();
+    throw new ApiError(401, error?.message || "Invalid access token", error);
   }
 
   const { _id } = decodedToken;
   const user = await User.findById(_id).select("-password -refreshToken");
 
   if (!user) {
-    console.log("Token is valid but user not found.");
-    return next();
+    throw new ApiError(401, "Unauthorized request");
   }
 
   req.user = user;

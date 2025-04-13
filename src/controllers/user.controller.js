@@ -79,13 +79,13 @@ const login = asyncHandler(async (req, res) => {
 
 
   if (!user) {
-    throw new ApiError(404, "Invalid credentials")
+    throw new ApiError(400, "Invalid credentials")
   }
 
   const isPasswordValid = await user.comparePassword(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(401, 'Invalid credentials')
+    throw new ApiError(400, 'Invalid credentials')
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
@@ -167,6 +167,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       "Access token refreshed"
     ))
 })
+
 // Get current user
 const currentUser = asyncHandler(async (req, res) => {
   return res
