@@ -14,7 +14,7 @@ const verifyJwt = asyncHandler(async (req, _res, next) => {
   try {
     decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid access token");
+    throw new ApiError(401, error?.message || "Invalid access token", error);
   }
 
   const { _id } = decodedToken;

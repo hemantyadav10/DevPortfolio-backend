@@ -101,7 +101,7 @@ userSchema.methods.generateAccessToken = function () {
       profilePictureUrl: this.profilePictureUrl,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "1d" }
+    { expiresIn: parseInt(process.env.ACCESS_TOKEN_EXPIRY) / 1000 }
   );
 }
 
@@ -110,7 +110,7 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     { _id: this._id },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: "10d" }
+    { expiresIn: parseInt(process.env.REFRESH_TOKEN_EXPIRY) / 1000 }
   );
 }
 
