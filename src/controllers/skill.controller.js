@@ -211,7 +211,8 @@ const getAllUserSkills = asyncHandler(async (req, res) => {
             },
             else: []
           }
-        }
+        },
+        totalEndorsements: { $size: "$endorsedBy" }
       }
     },
     {
