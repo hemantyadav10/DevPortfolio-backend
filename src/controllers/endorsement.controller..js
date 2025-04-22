@@ -4,10 +4,12 @@ import { Endorsement } from "../models/endorsement.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { Skill } from "../models/skill.model.js";
 import { ApiError } from "../utils/apiError.js";
+import { Notification } from "../models/notification.model.js";
 
 const toggleEndorsement = asyncHandler(async (req, res) => {
   const { skillId, endorsedTo } = req.body;
   const endorsedBy = req.user._id;
+  const io = req.app.get("io");
 
   // Validate ObjectIds
   if (!isValidObjectId(skillId)) {
@@ -39,10 +41,13 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
     // Check if the skill should be marked as verified
     const count = await Endorsement.countDocuments({ skillId });
     const verified = count >= 3;
-    
+
     if (skill.verified !== verified) {
       await Skill.updateOne({ _id: skillId }, { $set: { verified } });
     }
+
+    // Emit notification when endorsement is removed 
+    io.to(endorsedTo).emit('remove_endorsement', { message: "Endorsement removed." })
 
     return res
       .status(200)
@@ -61,6 +66,26 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
     if (skill.verified !== verified) {
       await Skill.updateOne({ _id: skillId }, { $set: { verified } });
     }
+
+    //Create notifcation for the recepient
+    const notification = await Notification.create({
+      recipient: endorsedTo,
+      sender: endorsedBy,
+      message: `${req?.user.name} endorsed your ${skill.name} skill`,
+      url: `/profile/${endorsedTo}#${skillId}`
+    });
+
+    // Emit a real-time notification event to the recipient's socket room
+    // This allows the recipient to instantly see the new notification in their UI
+    io.to(endorsedTo).emit("notification", {
+      recipient: notification.recipient,
+      sender: req.user,
+      message: notification.message,
+      url: notification.url,
+      _id: notification._id,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt
+    });
 
     return res
       .status(201)
