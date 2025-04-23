@@ -47,7 +47,12 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
     }
 
     // Emit notification when endorsement is removed 
-    io.to(endorsedTo).emit('remove_endorsement', { message: "Endorsement removed." })
+    io.to(endorsedTo).emit('remove_endorsement', {
+      recipient: endorsedTo,
+      sender: req.user,
+      message: `${req?.user.name} no longer endorses your "${skill.name}" skill.`,
+      skillId
+    })
 
     return res
       .status(200)
@@ -72,7 +77,7 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
       recipient: endorsedTo,
       sender: endorsedBy,
       message: `${req?.user.name} endorsed your ${skill.name} skill`,
-      url: `/profile/${endorsedTo}#${skillId}`
+      url: `/profile/${endorsedTo}/skills#${skillId}`
     });
 
     // Emit a real-time notification event to the recipient's socket room
@@ -84,7 +89,8 @@ const toggleEndorsement = asyncHandler(async (req, res) => {
       url: notification.url,
       _id: notification._id,
       isRead: notification.isRead,
-      createdAt: notification.createdAt
+      createdAt: notification.createdAt,
+      skillId
     });
 
     return res
